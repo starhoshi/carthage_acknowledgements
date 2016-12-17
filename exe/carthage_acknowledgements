@@ -2,15 +2,65 @@
 
 require "carthage_acknowledgements"
 require 'thor'
+require 'plist'
+require 'uri'
 
 module CarthageAcknowledgements
   class CLI < Thor
     class_option :help, type: :boolean, aliases: '-h', desc: 'help message.'
-    default_task :hello
+    default_task :help
 
-    desc 'hello', 'Say "Hello World!!"'
-    def hello
-      puts "Hello World!!"
+    option :output, :type => :string, :required => true, :aliases => 'o'
+    option :pods_target, :type => :string, :aliases => 'p'
+    desc 'generate -o=Acknowledgements.plist -p=Target', 'Output plist to the specified path. If you are using Cocoapods, please specify the target name.'
+    def generate
+      puts options[:output]
+      puts options[:pods_target]
+
+      current = Dir::pwd
+      begin
+        Dir::chdir('./Carthage/Checkouts')
+      rescue => ex
+        puts ex
+        exit
+      end
+
+      libraries = []
+      Dir.glob('*').each do |name|
+        library = {Title: name, FooterText: '', Type: "PSGroupSpecifier"}
+        libraries.push(library)
+      end
+
+      begin
+        Dir.glob(['**/LICENSE*', '**/LICENCE*']).each do |path|
+          libraries.each do |library|
+            if path.start_with?(library[:Title])
+              p File.open(path).read
+              library[:FooterText] = File.open(path).read
+            end
+          end
+        end
+      rescue => ex
+        puts ex
+        exit
+      end
+
+      property_list = nil
+      if options[:pods_target]
+        pods_path = "#{current}/Pods/Target Support Files/Pods-#{options[:pods_target]}/Pods-#{options[:pods_target]}-acknowledgements.plist"
+        if File.exist?(pods_path)
+          property_list = Plist::parse_xml(pods_path)
+        else
+          puts "No such file or directory - #{pods_path}"
+          exit
+        end
+      else
+        property_list = Plist::parse_xml("#{current}/template.plist")
+      end
+      property_list['PreferenceSpecifiers'].concat(libraries)
+      File.open(puts options[:output], "w") do |f|
+        f.puts(property_list.to_plist.gsub(/(\n)\t+/,'\1'))
+      end
     end
 
     desc 'version', 'version'
