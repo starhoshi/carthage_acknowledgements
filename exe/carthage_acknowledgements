@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require "carthage_acknowledgements"
+require 'thor'
+
+module CarthageAcknowledgements
+  class CLI < Thor
+    class_option :help, type: :boolean, aliases: '-h', desc: 'help message.'
+    default_task :hello
+
+    desc 'hello', 'Say "Hello World!!"'
+    def hello
+      puts "Hello World!!"
+    end
+
+    desc 'version', 'version'
+    def version
+      puts CarthageAcknowledgements::VERSION
+    end
+  end
+end
+
+CarthageAcknowledgements::CLI.start(ARGV)
