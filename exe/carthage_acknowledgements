@@ -57,7 +57,7 @@ module CarthageAcknowledgements
           exit
         end
       else
-        property_list = Plist::parse_xml("#{home_dir}/template.plist")
+        property_list = Plist::parse_xml(CarthageAcknowledgements::TEMPLATE)
       end
       property_list['PreferenceSpecifiers'].concat(libraries)
       File.open(options[:output], "w") do |f|
