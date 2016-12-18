@@ -14,9 +14,6 @@ module CarthageAcknowledgements
     option :pods_target, :type => :string, :aliases => 'p'
     desc 'generate -o=Acknowledgements.plist -p=Target', 'Output plist to the specified path. If you are using Cocoapods, please specify the target name.'
     def generate
-      puts options[:output]
-      puts options[:pods_target]
-
       home_dir = Dir::pwd
       begin
         Dir::chdir('./Carthage/Checkouts')
@@ -35,7 +32,6 @@ module CarthageAcknowledgements
         Dir.glob(['**/LICENSE*', '**/LICENCE*']).each do |path|
           libraries.each do |library|
             if path.start_with?(library[:Title])
-              p File.open(path).read
               library[:FooterText] = File.open(path).read
             end
           end
